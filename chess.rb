@@ -31,10 +31,13 @@ class Game
     game_over = false
     player1 = Player.new(@board, :W)
     player2 = Player.new(@board, :B)
+    @board.print_board
 
     until game_over
+      puts "Player with white pieces' turn"
       player1.make_move
       @board.print_board
+      puts "Player with black pieces' turn"
       player2.make_move
       @board.print_board
     end
@@ -50,9 +53,25 @@ class Player
   end
 
   def make_move
-    start_coord, end_coord = collect_input
-    piece = @board.board[ start_coord[0] ] [ start_coord[1] ]
-    piece.make_move([ end_coord[0], end_coord[1] ])
+    while true
+      start_coord, end_coord = collect_input
+      if @board.board[ start_coord[0] ] [ start_coord[1] ] == '__'
+        puts "Please select a non-empty coordinate"
+        next
+      end
+
+      piece = @board.board[ start_coord[0] ] [ start_coord[1] ]
+
+      if piece.color != @color
+        puts "Please select a piece of the correct color"
+        next
+      # elsif !piece.valid_move?
+      #   puts "Invalid move; please try again"
+      end
+
+      piece.make_move([ end_coord[0], end_coord[1] ])
+      break
+    end
   end
 
   def collect_input
@@ -101,6 +120,7 @@ class Board
       piece = Pawn.new(:W, coord, self)
       @board[coord[0]][coord[1]] = piece
     end
+    nil
   end
 
   def print_board
