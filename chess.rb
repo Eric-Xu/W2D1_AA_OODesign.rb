@@ -29,31 +29,41 @@ class Game
 
   def play
     game_over = false
-    player1 = Player.new
-    player2 = Player.new
+    player1 = Player.new(@board, :W)
+    player2 = Player.new(@board, :B)
 
     until game_over
       player1.make_move
+      @board.print_board
       player2.make_move
+      @board.print_board
     end
   end
 end
 
 class Player
+  attr_accessor :color
 
-  piece = @board.board[start_coord[0]][start_coord[1]]
-  piece.make_move([ end_coord[0], end_coord[1] ])
-  @board.print_board
-  puts ""
+  def initialize(board, color)
+    @board = board
+    @color = color
+  end
 
   def make_move
-    puts "Enter coord of piece to move:"
-    start_coord = collect_input
-    puts "Enter destination coord:"
-    end_coord = collect_input
+    start_coord, end_coord = collect_input
+    piece = @board.board[ start_coord[0] ] [ start_coord[1] ]
+    piece.make_move([ end_coord[0], end_coord[1] ])
   end
 
   def collect_input
+    puts "Enter coord of piece to move:"
+    start_coord = read_keyboard_input
+    puts "Enter destination coord:"
+    end_coord = read_keyboard_input
+    return start_coord, end_coord
+  end
+
+  def read_keyboard_input
     gets.chomp.split(" ").map! { |el| el.to_i }
   end
 end
