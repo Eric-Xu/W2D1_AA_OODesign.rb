@@ -9,7 +9,18 @@ class Pawn
   end
 
   def valid_move?(coord)
-
+    valid_trans = []
+    if @color == :W
+      valid_trans = [-1, 0]
+    else #player color = :B
+      valid_trans = [ 1, 0]
+    end
+    if [@position[0] + valid_trans[0],
+        @position[1] + valid_trans[1]] == coord
+      true
+    else
+      false
+    end
   end
 
   def make_move(coord)
@@ -65,8 +76,9 @@ class Player
       if piece.color != @color
         puts "Please select a piece of the correct color"
         next
-      # elsif !piece.valid_move?
-      #   puts "Invalid move; please try again"
+      elsif !piece.valid_move?(end_coord)
+        puts "Invalid move; please try again"
+        next
       end
 
       piece.make_move([ end_coord[0], end_coord[1] ])
@@ -120,7 +132,6 @@ class Board
       piece = Pawn.new(:W, coord, self)
       @board[coord[0]][coord[1]] = piece
     end
-    nil
   end
 
   def print_board
