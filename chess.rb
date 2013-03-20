@@ -51,9 +51,6 @@ class Piece
       return true
     end
   end
-
-  # def valid_transformation?(coord)
-  # end
 end
 
 class SlidingPiece < Piece
@@ -126,19 +123,65 @@ class Pawn < Piece
   end
 
   def valid_transformation?(coord)
-    valid_trans = []
+    valid_moves = find_valid_moves(coord)
+    valid_moves.include?(coord) ? true : false
+  end
+
+  def object_of_same_color?(coord)
+    piece = @board.board[coord[0]][coord[1]]
+    if piece == "__"
+      return false
+    else #there's a piece there
+      if piece.color == @color
+        return true
+      else
+        return false
+      end
+    end
+  end
+
+  def object_present?(coord)
+    piece = @board.board[coord[0]][coord[1]]
+    if piece == "__"
+      puts "object not present #{coord}"
+      return false
+    else
+      puts "object present #{coord}"
+      return true
+    end
+  end
+
+  def find_valid_moves(coord)
+    all_valid_moves = []
+    valid_vert_trans = []
+    valid_diag_trans = []
     if @color == :W
-      valid_trans = [-1, 0]
+      valid_vert_trans = [ [-1, 0] ]
+      valid_diag_trans = [[-1, -1], [-1, 1]]
     else #player color = :B
-      valid_trans = [ 1, 0]
+      valid_vert_trans = [ [ 1, 0] ]
+      valid_diag_trans = [[1, -1], [1, 1]]
     end
 
-    if [@position[0] + valid_trans[0],
-        @position[1] + valid_trans[1]] == coord
-      true
-    else
-      false
+    valid_vert_trans.each do |trans|
+      new_coord = [ @position[0] + trans[0], @position[1] + trans[1] ]
+      puts "current position: #{@position}"
+      puts "vert_trans: #{trans}"
+      puts "vert_trans_coord to evaluate: #{new_coord}"
+      if within_bounds?(new_coord) && !object_present?(new_coord)
+        all_valid_moves << new_coord
+      end
     end
+
+    valid_diag_trans.each do |trans|
+      new_coord = [ @position[0] + trans[0], @position[1] + trans[1] ]
+      if within_bounds?(new_coord) && !object_of_same_color?(new_coord) && object_present?(new_coord)
+        all_valid_moves << new_coord
+      end
+    end
+
+    puts "all_valid_moves: #{all_valid_moves}"
+    all_valid_moves
   end
 end
 
@@ -227,23 +270,28 @@ class Board
       end
     end
 
-    # #populate black pawns
-#     black_pawns_start_coords = [ [1,0], [1,1], [1,2],
-#                       [1,3], [1,4], [1,5], [1,6],
-#                       [1,7] ]
-#     black_pawns_start_coords.each do |coord|
-#       piece = Pawn.new(:B, coord, self, :P)
-#       @board[coord[0]][coord[1]] = piece
-#     end
-#
-#     #populate white pawns
-#     white_pawns_start_coords = [ [6,0], [6,1], [6,2],
-#                       [6,3], [6,4], [6,5], [6,6],
-#                       [6,7] ]
-#     white_pawns_start_coords.each do |coord|
-#       piece = Pawn.new(:W, coord, self, :P)
-#       @board[coord[0]][coord[1]] = piece
-#     end
+    #populate black pawns
+    black_pawns_start_coords = [ [1,0], [1,1], [1,2],
+                      [1,3], [1,4], [1,5], [1,6],
+                      [1,7] ]
+    black_pawns_start_coords.each do |coord|
+      piece = Pawn.new(:B, coord, self, :P)
+      @board[coord[0]][coord[1]] = piece
+    end
+
+    #populate white pawns
+    white_pawns_start_coords = [ [6,0], [6,1], [6,2],
+                      [6,3], [6,4], [6,5], [6,6],
+                      [6,7] ]
+    white_pawns_start_coords.each do |coord|
+      piece = Pawn.new(:W, coord, self, :P)
+      @board[coord[0]][coord[1]] = piece
+    end
+
+    #Test piece:
+    @board[5][4] = Queen.new(:B, [5,4], self, :Q)
+    @board[5][6] = Queen.new(:W, [5,6], self, :Q)
+
 #
 #     #populate queens
 #     @board[0][4] = Queen.new(:B, [0,4], self, :Q)
@@ -255,11 +303,11 @@ class Board
 #     @board[7][2] = Bishop.new(:W, [7,2], self, :B)
 #     @board[7][5] = Bishop.new(:W, [7,5], self, :B)
 
-    #populate rooks
-    @board[0][0] = Rook.new(:B, [0,0], self, :R)
-    @board[0][7] = Rook.new(:B, [0,7], self, :R)
-    @board[7][0] = Rook.new(:W, [7,0], self, :R)
-    @board[7][7] = Rook.new(:W, [7,7], self, :R)
+    # #populate rooks
+    # @board[0][0] = Rook.new(:B, [0,0], self, :R)
+    # @board[0][7] = Rook.new(:B, [0,7], self, :R)
+    # @board[7][0] = Rook.new(:W, [7,0], self, :R)
+    # @board[7][7] = Rook.new(:W, [7,7], self, :R)
   end
 
   def print_board
