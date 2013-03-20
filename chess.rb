@@ -56,18 +56,14 @@ class Queen < Piece
   end
 
   def valid_transformation?(coord)
-    valid_moves = valid_moves(coord)
-    puts valid_moves
-    puts coord
-
+    valid_moves = find_valid_moves(coord)
     valid_moves.include?(coord) ? true : false
   end
 
-  def valid_moves(coord)
+  def find_valid_moves(coord)
     valid_moves = []
     @valid_trans.each do |trans|
-      current_pos = @position
-      debugger
+      current_pos = @position.dup
 
       while true
         current_pos[0] += trans[0]
@@ -77,21 +73,17 @@ class Queen < Piece
 
         path_contents = @board.board[current_pos[0]][current_pos[1]]
         if path_contents == "__"
-          valid_moves << current_pos
-          # loop breaks as soon as single element gets added
-          # into valid moves array; change to next
-          break
+          valid_moves << current_pos.dup
+          next
         else #there's an object
           if dest_same_color?(current_pos)
             #don't add to valid_moves
-            break
           else
-            valid_moves << current_pos
-            break
+            valid_moves << current_pos.dup
           end
+          break
         end
       end
-      puts "trans: #{trans[0]}, #{trans[1]}"
     end
 
     valid_moves
@@ -135,10 +127,10 @@ class Game
     @board.print_board
 
     until game_over
-      puts "Player with white pieces' turn"
+      puts "Black's turn"
       player1.make_move
       @board.print_board
-      puts "Player with black pieces' turn"
+      puts "White's turn"
       player2.make_move
       @board.print_board
     end
@@ -229,10 +221,12 @@ class Board
     piece = Queen.new(:W, [7,4], self, :Q)
     @board[7][4] = piece
 
+    nil
   end
 
   def print_board
-    @board.each do |row|
+    puts "   0  1  2  3  4  5  6  7"
+    @board.each_with_index do |row, i|
       output_row = row.map do |piece|
         if piece == "__"
           "__"
@@ -240,9 +234,11 @@ class Board
           "#{piece.color}#{piece.type}"
         end
       end
-      puts output_row.join(" ")
+      puts "#{i}  #{output_row.join(" ")}"
       puts "" #empty line
     end
-    return nil #for display
+    nil
   end
 end
+
+Game.new.play
