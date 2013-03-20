@@ -44,8 +44,16 @@ class Piece
     @position = coord
   end
 
-  def valid_transformation?(coord)
+  def within_bounds?(current_pos)
+    if (current_pos[0] < 0) or (current_pos[0] > 7) or (current_pos[1] < 0) or (current_pos[1] > 7)
+      return false
+    else
+      return true
+    end
   end
+
+  # def valid_transformation?(coord)
+  # end
 end
 
 class Queen < Piece
@@ -67,9 +75,9 @@ class Queen < Piece
 
       while true
         current_pos[0] += trans[0]
-        break if (current_pos[0] < 0) or (current_pos[0] > 7)
         current_pos[1] += trans[1]
-        break if (current_pos[1] < 0) or (current_pos[1] > 7)
+        break unless within_bounds?(current_pos)
+        puts "#{current_pos[0]} #{current_pos[1]} #{within_bounds?(current_pos)}"
 
         path_contents = @board.board[current_pos[0]][current_pos[1]]
         if path_contents == "__"
@@ -127,10 +135,10 @@ class Game
     @board.print_board
 
     until game_over
-      puts "Black's turn"
+      puts "White's turn"
       player1.make_move
       @board.print_board
-      puts "White's turn"
+      puts "Black's turn"
       player2.make_move
       @board.print_board
     end
