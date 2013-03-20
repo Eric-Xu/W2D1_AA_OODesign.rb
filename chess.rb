@@ -56,11 +56,10 @@ class Piece
   # end
 end
 
-class Queen < Piece
+class SlidingPiece < Piece
   def initialize(color, position, board, type)
     super(color, position, board, type)
-    @valid_trans = [ [0, -1], [-1, -1], [-1, 0], [-1, 1],
-                   [0, 1], [1, 1], [1, 0], [1, -1]]
+    #@valid_trans = []
   end
 
   def valid_transformation?(coord)
@@ -77,7 +76,7 @@ class Queen < Piece
         current_pos[0] += trans[0]
         current_pos[1] += trans[1]
         break unless within_bounds?(current_pos)
-        puts "#{current_pos[0]} #{current_pos[1]} #{within_bounds?(current_pos)}"
+        #puts "#{current_pos[0]} #{current_pos[1]} #{within_bounds?(current_pos)}"
 
         path_contents = @board.board[current_pos[0]][current_pos[1]]
         if path_contents == "__"
@@ -95,6 +94,29 @@ class Queen < Piece
     end
 
     valid_moves
+  end
+end
+
+class Queen < SlidingPiece
+  def initialize(color, position, board, type)
+    super(color, position, board, type)
+    @valid_trans = [ [0, -1], [-1, -1], [-1, 0], [-1, 1],
+                   [0, 1], [1, 1], [1, 0], [1, -1]]
+  end
+end
+
+class Rook < SlidingPiece
+  def initialize(color, position, board, type)
+    super(color, position, board, type)
+    @valid_trans = [ [0, -1], [-1, 0], [0, 1], [1, 0] ]
+  end
+end
+
+
+class Bishop < SlidingPiece
+  def initialize(color, position, board, type)
+    super(color, position, board, type)
+    @valid_trans = [ [-1, -1], [-1, 1], [1, 1], [1, -1] ]
   end
 end
 
@@ -205,31 +227,39 @@ class Board
       end
     end
 
-    #populate black pawns
-    black_pawns_start_coords = [ [1,0], [1,1], [1,2],
-                      [1,3], [1,4], [1,5], [1,6],
-                      [1,7] ]
-    black_pawns_start_coords.each do |coord|
-      piece = Pawn.new(:B, coord, self, :P)
-      @board[coord[0]][coord[1]] = piece
-    end
+    # #populate black pawns
+#     black_pawns_start_coords = [ [1,0], [1,1], [1,2],
+#                       [1,3], [1,4], [1,5], [1,6],
+#                       [1,7] ]
+#     black_pawns_start_coords.each do |coord|
+#       piece = Pawn.new(:B, coord, self, :P)
+#       @board[coord[0]][coord[1]] = piece
+#     end
+#
+#     #populate white pawns
+#     white_pawns_start_coords = [ [6,0], [6,1], [6,2],
+#                       [6,3], [6,4], [6,5], [6,6],
+#                       [6,7] ]
+#     white_pawns_start_coords.each do |coord|
+#       piece = Pawn.new(:W, coord, self, :P)
+#       @board[coord[0]][coord[1]] = piece
+#     end
+#
+#     #populate queens
+#     @board[0][4] = Queen.new(:B, [0,4], self, :Q)
+#     @board[7][4] = Queen.new(:W, [7,4], self, :Q)
+#
+#     #populate bishops
+#     @board[0][2] = Bishop.new(:B, [0,2], self, :B)
+#     @board[0][5] = Bishop.new(:B, [0,5], self, :B)
+#     @board[7][2] = Bishop.new(:W, [7,2], self, :B)
+#     @board[7][5] = Bishop.new(:W, [7,5], self, :B)
 
-    #populate white pawns
-    white_pawns_start_coords = [ [6,0], [6,1], [6,2],
-                      [6,3], [6,4], [6,5], [6,6],
-                      [6,7] ]
-    white_pawns_start_coords.each do |coord|
-      piece = Pawn.new(:W, coord, self, :P)
-      @board[coord[0]][coord[1]] = piece
-    end
-
-    #populate queens
-    piece = Queen.new(:B, [0,4], self, :Q)
-    @board[0][4] = piece
-    piece = Queen.new(:W, [7,4], self, :Q)
-    @board[7][4] = piece
-
-    nil
+    #populate rooks
+    @board[0][0] = Rook.new(:B, [0,0], self, :R)
+    @board[0][7] = Rook.new(:B, [0,7], self, :R)
+    @board[7][0] = Rook.new(:W, [7,0], self, :R)
+    @board[7][7] = Rook.new(:W, [7,7], self, :R)
   end
 
   def print_board
