@@ -56,7 +56,6 @@ end
 class SlidingPiece < Piece
   def initialize(color, position, board, type)
     super(color, position, board, type)
-    #@valid_trans = []
   end
 
   def valid_transformation?(coord)
@@ -73,8 +72,6 @@ class SlidingPiece < Piece
         current_pos[0] += trans[0]
         current_pos[1] += trans[1]
         break unless within_bounds?(current_pos)
-        #puts "#{current_pos[0]} #{current_pos[1]} #{within_bounds?(current_pos)}"
-
         path_contents = @board.board[current_pos[0]][current_pos[1]]
         if path_contents == "__"
           valid_moves << current_pos.dup
@@ -196,10 +193,8 @@ class Pawn < Piece
   def object_present?(coord)
     piece = @board.board[coord[0]][coord[1]]
     if piece == "__"
-      #puts "object not present #{coord}"
       return false
     else
-      #puts "object present #{coord}"
       return true
     end
   end
@@ -218,9 +213,6 @@ class Pawn < Piece
 
     valid_vert_trans.each do |trans|
       new_coord = [ @position[0] + trans[0], @position[1] + trans[1] ]
-      #puts "current position: #{@position}"
-      #puts "vert_trans: #{trans}"
-      #puts "vert_trans_coord to evaluate: #{new_coord}"
       if within_bounds?(new_coord) && !object_present?(new_coord)
         all_valid_moves << new_coord
       end
@@ -233,11 +225,9 @@ class Pawn < Piece
       end
     end
 
-    #puts "all_valid_moves: #{all_valid_moves}"
     all_valid_moves
   end
 end
-
 
 class Game
   attr_accessor :board
