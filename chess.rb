@@ -1,32 +1,68 @@
-class Pawn
+class Piece
   attr_reader :color, :type, :board
 
-  def initialize(color, position, board)
+  def initialize(color, position, board, type)
     @color = color
     @position = position
     @board = board
-    @type = :P
+    @type = type
   end
 
   def valid_move?(coord)
-    valid_trans = []
-    if @color == :W
-      valid_trans = [-1, 0]
-    else #player color = :B
-      valid_trans = [ 1, 0]
-    end
-    if [@position[0] + valid_trans[0],
-        @position[1] + valid_trans[1]] == coord
-      true
+    valid_trans = valid_transformation?(coord)
+    dest_has_object = dest_has_object?(coord)
+    dest_same_color = dest_same_color?(coord)
+
+    if valid_trans
+      if dest_has_object && dest_same_color
+        return false
+      else
+        return true
+      end
     else
-      false
+      return false
     end
+  end
+
+  def dest_has_object?(coord)
+    dest_piece = @board.board[coord[0]][coord[1]]
+    dest_piece == '__' ? false : true
+  end
+
+  def dest_same_color?(coord)
+    dest_piece = @board.board[coord[0]][coord[1]]
+    dest_piece.color == @color ? true : false
   end
 
   def make_move(coord)
     @board.board[coord[0]][coord[1]] = self
     @board.board[@position[0]][@position[1]] = "__"
     @position = coord
+  end
+
+  def valid_transformation?(coord)
+  end
+end
+
+class Pawn < Piece
+  def initialize(color, position, board, type)
+    super(color, position, board, type)
+  end
+
+  def valid_transformation?(coord)
+    valid_trans = []
+    if @color == :W
+      valid_trans = [-1, 0]
+    else #player color = :B
+      valid_trans = [ 1, 0]
+    end
+
+    if [@position[0] + valid_trans[0],
+        @position[1] + valid_trans[1]] == coord
+      true
+    else
+      false
+    end
   end
 end
 
@@ -120,7 +156,7 @@ class Board
                       [1,3], [1,4], [1,5], [1,6],
                       [1,7] ]
     black_pawns_start_coords.each do |coord|
-      piece = Pawn.new(:B, coord, self)
+      piece = Pawn.new(:B, coord, self, :P)
       @board[coord[0]][coord[1]] = piece
     end
 
@@ -129,7 +165,7 @@ class Board
                       [6,3], [6,4], [6,5], [6,6],
                       [6,7] ]
     white_pawns_start_coords.each do |coord|
-      piece = Pawn.new(:W, coord, self)
+      piece = Pawn.new(:W, coord, self, :P)
       @board[coord[0]][coord[1]] = piece
     end
   end
