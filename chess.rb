@@ -1,7 +1,13 @@
+#Note to reviewers:
+#Things we're planning on refactoring:
+#- change "__" in board to nil
+#- eliminate 'type' from Piece class as it's now redundant
+
 require 'debugger'
 
 class Piece
   attr_reader :color, :type, :board
+  attr_accessor :position
 
   def initialize(color, position, board, type)
     @color = color
@@ -33,6 +39,7 @@ class Piece
     dest_piece == '__' ? false : true
   end
 
+  #redundant from valid_move?
   def dest_same_color?(coord)
     dest_piece = @board.board[coord[0]][coord[1]]
     dest_piece.color == @color ? true : false
@@ -45,7 +52,8 @@ class Piece
   end
 
   def within_bounds?(current_pos)
-    if (current_pos[0] < 0) or (current_pos[0] > 7) or (current_pos[1] < 0) or (current_pos[1] > 7)
+    if (current_pos[0] < 0) or (current_pos[0] > 7) or
+        (current_pos[1] < 0) or (current_pos[1] > 7)
       return false
     else
       return true
@@ -59,11 +67,11 @@ class SlidingPiece < Piece
   end
 
   def valid_transformation?(coord)
-    valid_moves = find_valid_moves(coord)
+    valid_moves = find_valid_moves
     valid_moves.include?(coord) ? true : false
   end
 
-  def find_valid_moves(coord)
+  def find_valid_moves
     valid_moves = []
     @valid_trans.each do |trans|
       current_pos = @position.dup
@@ -71,7 +79,9 @@ class SlidingPiece < Piece
       while true
         current_pos[0] += trans[0]
         current_pos[1] += trans[1]
+
         break unless within_bounds?(current_pos)
+
         path_contents = @board.board[current_pos[0]][current_pos[1]]
         if path_contents == "__"
           valid_moves << current_pos.dup
@@ -97,12 +107,11 @@ class SteppingPiece < Piece
   end
 
   def valid_transformation?(coord)
-    valid_moves = find_valid_moves(coord)
-    #puts "valid_moves: #{valid_moves}"
+    valid_moves = find_valid_moves
     valid_moves.include?(coord) ? true : false
   end
 
-  def find_valid_moves(coord)
+  def find_valid_moves
     valid_moves = []
     @valid_trans.each do |trans|
       current_pos = @position.dup
@@ -173,7 +182,7 @@ class Pawn < Piece
   end
 
   def valid_transformation?(coord)
-    valid_moves = find_valid_moves(coord)
+    valid_moves = find_valid_moves
     valid_moves.include?(coord) ? true : false
   end
 
@@ -199,7 +208,7 @@ class Pawn < Piece
     end
   end
 
-  def find_valid_moves(coord)
+  def find_valid_moves
     all_valid_moves = []
     valid_vert_trans = []
     valid_diag_trans = []
@@ -220,7 +229,8 @@ class Pawn < Piece
 
     valid_diag_trans.each do |trans|
       new_coord = [ @position[0] + trans[0], @position[1] + trans[1] ]
-      if within_bounds?(new_coord) && !object_of_same_color?(new_coord) && object_present?(new_coord)
+      if within_bounds?(new_coord) && !object_of_same_color?(new_coord) &&
+              object_present?(new_coord)
         all_valid_moves << new_coord
       end
     end
@@ -244,57 +254,44 @@ class Game
 
     until game_over
       puts "White's turn"
-      player1.make_move
+      while true
+        player1.make_move
+        if @board.in_check?(:W)
+          print_message("Check: move not allowed!")
+          player1.revert_move
+          next
+        elsif @board.in_check?(:B)
+          print_message("Check!")
+          break
+        else
+          break
+        end
+      end
       @board.print_board
       puts "Black's turn"
-      player2.make_move
+      while true
+        player2.make_move
+        if @board.in_check?(:B)
+          print_message("Check: move not allowed!")
+          player2.revert_move
+          next
+        elsif @board.in_check?(:W)
+          print_message("Check!")
+          puts "Check!"
+          break
+        else
+          break
+        end
+      end
       @board.print_board
     end
   end
 end
 
-class Player
-  attr_accessor :color
-
-  def initialize(board, color)
-    @board = board
-    @color = color
-  end
-
-  def make_move
-    while true
-      start_coord, end_coord = collect_input
-      if @board.board[ start_coord[0] ] [ start_coord[1] ] == '__'
-        puts "Please select a non-empty coordinate"
-        next
-      end
-
-      piece = @board.board[ start_coord[0] ] [ start_coord[1] ]
-
-      if piece.color != @color
-        puts "Please select a piece of the correct color"
-        next
-      elsif !piece.valid_move?(end_coord)
-        puts "Invalid move; please try again"
-        next
-      end
-
-      piece.make_move([ end_coord[0], end_coord[1] ])
-      break
-    end
-  end
-
-  def collect_input
-    puts "Enter coord of piece to move:"
-    start_coord = read_keyboard_input
-    puts "Enter destination coord:"
-    end_coord = read_keyboard_input
-    return start_coord, end_coord
-  end
-
-  def read_keyboard_input
-    gets.chomp.split(" ").map! { |el| el.to_i }
-  end
+def print_message(message)
+  puts ""
+  puts message
+  puts ""
 end
 
 class Board
@@ -303,6 +300,36 @@ class Board
   def initialize
     @board = [ [],[],[],[],[],[],[],[] ]
     create_initial_board_state
+  end
+
+  def in_check?(color)
+    king = nil
+    opp_col_objects = []
+    @board.flatten.each do |square|
+      if square == "__"
+        #don't do anything
+      else #has object
+        if (square.type == :K) and (square.color == color)
+          king = square
+        end
+        if square.color != color
+          opp_col_objects << square
+        end
+      end
+    end
+
+    possible_moves = []
+    opp_col_objects.each do |piece|
+      piece.find_valid_moves.each do |coord|
+        possible_moves << coord
+      end
+    end
+
+    if possible_moves.include?(king.position)
+      return true
+    else
+      return false
+    end
   end
 
   def create_initial_board_state
@@ -356,6 +383,10 @@ class Board
     #populate kings
     @board[0][3] = King.new(:B, [0,3], self, :K)
     @board[7][3] = King.new(:W, [7,3], self, :K)
+
+    # #practice pieces
+    # @board[7][7] = Queen.new(:B, [7,7], self, :Q)
+    # @board[6][4] = Queen.new(:B, [6,4], self, :Q)
   end
 
   def print_board
@@ -372,6 +403,66 @@ class Board
       puts "" #empty line
     end
     nil
+  end
+end
+
+class Player
+  attr_accessor :color
+
+  def initialize(board, color)
+    @board = board
+    @color = color
+    @start_object = nil
+    @start_coord = []
+    @end_object = nil
+    @end_coord = []
+  end
+
+  def revert_move
+    @start_object.position = @start_coord
+    @board.board[ @start_coord[0] ] [ @start_coord[1] ] = @start_object
+    @board.board[ @end_coord[0] ] [ @end_coord[1] ] = @end_object
+  end
+
+  def make_move
+    while true
+      start_coord, end_coord = collect_input
+      if @board.board[ start_coord[0] ] [ start_coord[1] ] == '__'
+        puts "Please select a non-empty coordinate"
+        next
+      end
+
+      piece = @board.board[ start_coord[0] ] [ start_coord[1] ]
+
+      if piece.color != @color
+        puts "Please select a piece of the correct color"
+        next
+      elsif !piece.valid_move?(end_coord)
+        puts "Invalid move; please try again"
+        next
+      end
+
+      @start_object = piece
+      @start_coord = start_coord.dup
+      @end_object = @board.board[ end_coord[0] ] [ end_coord[1] ].dup
+      #puts "end_object: #{@end_object}"
+      @end_coord = end_coord.dup
+
+      piece.make_move([ end_coord[0], end_coord[1] ])
+      break
+    end
+  end
+
+  def collect_input
+    puts "Enter coord of piece to move:"
+    start_coord = read_keyboard_input
+    puts "Enter destination coord:"
+    end_coord = read_keyboard_input
+    return start_coord, end_coord
+  end
+
+  def read_keyboard_input
+    gets.chomp.split(" ").map! { |el| el.to_i }
   end
 end
 
