@@ -1,3 +1,5 @@
+require 'debugger'
+
 class Piece
   attr_reader :color, :type, :board
 
@@ -11,7 +13,9 @@ class Piece
   def valid_move?(coord)
     valid_trans = valid_transformation?(coord)
     dest_has_object = dest_has_object?(coord)
-    dest_same_color = dest_same_color?(coord)
+    if dest_has_object
+      dest_same_color = dest_same_color?(coord)
+    end
 
     if valid_trans
       if dest_has_object && dest_same_color
@@ -41,6 +45,56 @@ class Piece
   end
 
   def valid_transformation?(coord)
+  end
+end
+
+class Queen < Piece
+  def initialize(color, position, board, type)
+    super(color, position, board, type)
+    @valid_trans = [ [0, -1], [-1, -1], [-1, 0], [-1, 1],
+                   [0, 1], [1, 1], [1, 0], [1, -1]]
+  end
+
+  def valid_transformation?(coord)
+    valid_moves = valid_moves(coord)
+    puts valid_moves
+    puts coord
+
+    valid_moves.include?(coord) ? true : false
+  end
+
+  def valid_moves(coord)
+    valid_moves = []
+    @valid_trans.each do |trans|
+      current_pos = @position
+      debugger
+
+      while true
+        current_pos[0] += trans[0]
+        break if (current_pos[0] < 0) or (current_pos[0] > 7)
+        current_pos[1] += trans[1]
+        break if (current_pos[1] < 0) or (current_pos[1] > 7)
+
+        path_contents = @board.board[current_pos[0]][current_pos[1]]
+        if path_contents == "__"
+          valid_moves << current_pos
+          # loop breaks as soon as single element gets added
+          # into valid moves array; change to next
+          break
+        else #there's an object
+          if dest_same_color?(current_pos)
+            #don't add to valid_moves
+            break
+          else
+            valid_moves << current_pos
+            break
+          end
+        end
+      end
+      puts "trans: #{trans[0]}, #{trans[1]}"
+    end
+
+    valid_moves
   end
 end
 
@@ -168,6 +222,13 @@ class Board
       piece = Pawn.new(:W, coord, self, :P)
       @board[coord[0]][coord[1]] = piece
     end
+
+    #populate queens
+    piece = Queen.new(:B, [0,4], self, :Q)
+    @board[0][4] = piece
+    piece = Queen.new(:W, [7,4], self, :Q)
+    @board[7][4] = piece
+
   end
 
   def print_board
