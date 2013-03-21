@@ -89,7 +89,7 @@ class SlidingPiece < Piece
           valid_moves << current_pos.dup
           next
         else #there's an object
-          if dest_same_color?(current_pos)
+          if dest_same_color?(current_pos) #REV: 4 levels in. maybe look to create helper method
             #don't add to valid_moves
           else
             valid_moves << current_pos.dup
@@ -139,7 +139,7 @@ class SteppingPiece < Piece
   end
 end
 
-class King < SteppingPiece
+class King < SteppingPiece #REV: move each class into its own file
   def initialize(color, position, board, type)
     super(color, position, board, type)
     @valid_trans = [ [0, -1], [-1, -1], [-1, 0], [-1, 1],
@@ -254,8 +254,8 @@ class Game
     player2 = Player.new(@board, :B)
     @board.print_board
 
-    until game_over
-      puts "White's turn"
+    until game_over #REV: Long game over loop. Maybe track who is current move as an instance variable.
+      puts "White's turn" #and then put the check/checkmate validations in a helper method
       while true
         player1.make_move
         if @board.check_mate?(:B)
@@ -312,7 +312,7 @@ class Board
   def initialize
     @board = [ [],[],[],[],[],[],[],[] ]
     create_initial_board_state
-    @start_object = nil
+    @start_object = nil 
     @start_coord = []
     @end_object = nil
     @end_coord = []
@@ -347,7 +347,7 @@ class Board
       all_king_moves_result_in_check = false
     end
 
-    #TODO: refactor the below two blocks into helper method
+    #TODO: refactor the below two blocks into helper method #REV: Agreed
     poss_king_moves.each do |end_coord|
       @start_object = king
       @start_coord = king.position.dup
@@ -514,9 +514,9 @@ class Player
   def initialize(board, color)
     @board = board
     @color = color
-    @start_object = nil
-    @start_coord = []
-    @end_object = nil
+    @start_object = nil #REV: alot of instance variables for player. Alot of the same ones are in board.
+    @start_coord = []   # are they needed in both places? Maybe create a helper method called find_piece(pos)
+    @end_object = nil   # which will return a piece object.
     @end_coord = []
   end
 
@@ -568,3 +568,5 @@ class Player
 end
 
 Game.new.play
+#REV: Great job! methods are well named and I can understand what is going on. Just a few methods are long, and
+#I've found its best to refactor asap as shorter methods are easier to debug.
