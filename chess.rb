@@ -24,7 +24,12 @@ class Piece
     if dest_has_object
       dest_same_color = dest_same_color?(coord)
     end
-
+    # KL: I would shorten this to
+    # if valid_trans
+    #   true unless dest_has_object && dest_same_color
+    # end
+    #
+    # false
     if valid_trans
       if dest_has_object && dest_same_color
         return false
@@ -54,6 +59,8 @@ class Piece
   end
 
   def within_bounds?(current_pos)
+    # KL: again here, just do 'false if ....'
+    # use || not 'or'
     if (current_pos[0] < 0) or (current_pos[0] > 7) or
         (current_pos[1] < 0) or (current_pos[1] > 7)
       return false
@@ -72,7 +79,7 @@ class SlidingPiece < Piece
     valid_moves = find_valid_moves
     valid_moves.include?(coord) ? true : false
   end
-
+  # KL: this method should be broken up a bit
   def find_valid_moves
     valid_moves = []
     @valid_trans.each do |trans|
@@ -114,6 +121,8 @@ class SteppingPiece < Piece
   end
 
   def find_valid_moves
+    #KL: this loooks like it borrows a lot of code from your other find_valid_moves
+    # you should factor that out and put it in the Piece class
     valid_moves = []
     @valid_trans.each do |trans|
       current_pos = @position.dup
@@ -249,6 +258,8 @@ class Game
   end
 
   def play
+    # KL: lot of redundant code here
+    # put the play blocks into a player_turn method or something
     game_over = false
     player1 = Player.new(@board, :W)
     player2 = Player.new(@board, :B)
@@ -317,7 +328,7 @@ class Board
     @end_object = nil
     @end_coord = []
   end
-
+  # KL: this method is wayyy too long
   def check_mate?(color)
     king = nil
     poss_king_moves = []
@@ -442,7 +453,8 @@ class Board
       piece = Pawn.new(:W, coord, self, :P)
       @board[coord[0]][coord[1]] = piece
     end
-
+    # KL: you should be able to set up a base order of pieces, loop through the board
+    # and place the pieces
     #populate queens
     @board[0][4] = Queen.new(:B, [0,4], self, :Q)
     @board[7][4] = Queen.new(:W, [7,4], self, :Q)
@@ -528,6 +540,7 @@ class Player
 
   def make_move
     while true
+      # KL: don't need to use 'next' like this in a while loop
       start_coord, end_coord = collect_input
       if @board.board[ start_coord[0] ] [ start_coord[1] ] == '__'
         puts "Please select a non-empty coordinate"
@@ -535,7 +548,7 @@ class Player
       end
 
       piece = @board.board[ start_coord[0] ] [ start_coord[1] ]
-
+      # KL: these should be put in a validation method
       if piece.color != @color
         puts "Please select a piece of the correct color"
         next
