@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 #Note to reviewers:
 #Things we're planning on refactoring:
 #1. change "__" in board to nil
@@ -466,24 +468,37 @@ class Board
     #populate kings
     @board[0][3] = King.new(:B, [0,3], self, :K)
     @board[7][3] = King.new(:W, [7,3], self, :K)
-
-    # #practice pieces
-    #
-    # @board[7][7] = King.new(:B, [7,7], self, :K)
-    # @board[6][7] = Pawn.new(:B, [6,7], self, :P)
-    # @board[6][6] = Pawn.new(:B, [6,6], self, :P)
-    # @board[6][2] = Queen.new(:W, [6,2], self, :Q)
-    # @board[0][0] = King.new(:W, [0,0], self, :K)
   end
 
   def print_board
-    puts "   0  1  2  3  4  5  6  7"
+    white = {}
+    white[:K] = "♔"
+    white[:Q] = "♕"
+    white[:R] = "♖"
+    white[:B] = "♗"
+    white[:N] = "♘"
+    white[:P] = "♙"
+
+    black = {}
+    black[:K] = "♚"
+    black[:Q] = "♛"
+    black[:R] = "♜"
+    black[:B] = "♝"
+    black[:N] = "♞"
+    black[:P] = "♟"
+
+    puts "    0   1   2   3   4   5   6   7"
+    puts ""
     @board.each_with_index do |row, i|
       output_row = row.map do |piece|
         if piece == "__"
-          "__"
+          "___"
         else
-          "#{piece.color}#{piece.type}"
+          if piece.color == :W
+            " #{white[piece.type]} "
+          else
+            " #{black[piece.type]} "
+          end
         end
       end
       puts "#{i}  #{output_row.join(" ")}"
@@ -532,7 +547,6 @@ class Player
       @start_object = piece
       @start_coord = start_coord.dup
       @end_object = @board.board[ end_coord[0] ] [ end_coord[1] ].dup
-      #puts "end_object: #{@end_object}"
       @end_coord = end_coord.dup
 
       piece.make_move([ end_coord[0], end_coord[1] ])
