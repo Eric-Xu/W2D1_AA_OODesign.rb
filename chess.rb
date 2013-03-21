@@ -325,16 +325,12 @@ class Board
       if square == "__"
         #don't do anything
       else #has object
-        #puts "square: #{square.type}  color: #{square.color}"
-        #puts color
-        #puts "#{square.type == :K}  #{square.color == color}"
         if square.type == :K and square.color == color
           king = square
-          #puts "king's color: #{king.color}"
-        # else
-        #   if square.color == color
-        #     same_col_objects << square
-        #   end
+        else
+          if square.color == color
+            same_col_objects << square
+          end
         end
       end
     end
@@ -349,13 +345,11 @@ class Board
       all_king_moves_result_in_check = false
     end
 
+    #TODO: refactor the below two blocks into helper method
     poss_king_moves.each do |end_coord|
       @start_object = king
-      puts @start_object
       @start_coord = king.position.dup
       @end_object = @board[ end_coord[0] ] [ end_coord[1] ] #was dup
-      puts @end_object
-      @end_coord = end_coord.dup
 
       king.make_move([ end_coord[0], end_coord[1] ])
       if !in_check?(color)
@@ -364,7 +358,25 @@ class Board
       revert_move
     end
 
-    all_king_moves_result_in_check
+    all_buddy_moves_result_in_check = true
+
+    #check if any moves from same color pieces eliminate checkmate
+    same_col_objects.each do |piece|
+      piece.find_valid_moves.each do |end_coord|
+        @start_object = piece
+        @start_coord = piece.position.dup
+        @end_object = @board[ end_coord[0] ] [ end_coord[1] ] #was dup
+        @end_coord = end_coord.dup
+
+        piece.make_move([ end_coord[0], end_coord[1] ])
+        if !in_check?(color)
+          all_buddy_moves_result_in_check = false
+        end
+        revert_move
+      end
+    end
+
+    all_king_moves_result_in_check and all_buddy_moves_result_in_check
   end
 
   def revert_move
@@ -380,9 +392,7 @@ class Board
       if square == "__"
         #don't do anything
       else #has object
-        #puts "square: #{square.type}  color: #{square.color}"
         if (square.type == :K) and (square.color == color)
-          #puts "found king of color: #{color}"
           king = square
         end
         if square.color != color
@@ -413,58 +423,57 @@ class Board
       end
     end
 
-    # #populate black pawns
-    # black_pawns_start_coords = [ [1,0], [1,1], [1,2],
-    #                   [1,3], [1,4], [1,5], [1,6],
-    #                   [1,7] ]
-    # black_pawns_start_coords.each do |coord|
-    #   piece = Pawn.new(:B, coord, self, :P)
-    #   @board[coord[0]][coord[1]] = piece
-    # end
-    #
-    # #populate white pawns
-    # white_pawns_start_coords = [ [6,0], [6,1], [6,2],
-    #                   [6,3], [6,4], [6,5], [6,6],
-    #                   [6,7] ]
-    # white_pawns_start_coords.each do |coord|
-    #   piece = Pawn.new(:W, coord, self, :P)
-    #   @board[coord[0]][coord[1]] = piece
-    # end
-    #
-    # #populate queens
-    # @board[0][4] = Queen.new(:B, [0,4], self, :Q)
-    # @board[7][4] = Queen.new(:W, [7,4], self, :Q)
-    #
-    # #populate bishops
-    # @board[0][2] = Bishop.new(:B, [0,2], self, :B)
-    # @board[0][5] = Bishop.new(:B, [0,5], self, :B)
-    # @board[7][2] = Bishop.new(:W, [7,2], self, :B)
-    # @board[7][5] = Bishop.new(:W, [7,5], self, :B)
-    #
-    # #populate rooks
-    # @board[0][0] = Rook.new(:B, [0,0], self, :R)
-    # @board[0][7] = Rook.new(:B, [0,7], self, :R)
-    # @board[7][0] = Rook.new(:W, [7,0], self, :R)
-    # @board[7][7] = Rook.new(:W, [7,7], self, :R)
-    #
-    # #populate knights
-    # @board[0][1] = Knight.new(:B, [0,1], self, :N)
-    # @board[0][6] = Knight.new(:B, [0,6], self, :N)
-    # @board[7][1] = Knight.new(:W, [7,1], self, :N)
-    # @board[7][6] = Knight.new(:W, [7,6], self, :N)
-    #
-    # #populate kings
-    # @board[0][3] = King.new(:B, [0,3], self, :K)
-    # @board[7][3] = King.new(:W, [7,3], self, :K)
+    #populate black pawns
+    black_pawns_start_coords = [ [1,0], [1,1], [1,2],
+                      [1,3], [1,4], [1,5], [1,6],
+                      [1,7] ]
+    black_pawns_start_coords.each do |coord|
+      piece = Pawn.new(:B, coord, self, :P)
+      @board[coord[0]][coord[1]] = piece
+    end
 
-    #practice pieces
+    #populate white pawns
+    white_pawns_start_coords = [ [6,0], [6,1], [6,2],
+                      [6,3], [6,4], [6,5], [6,6],
+                      [6,7] ]
+    white_pawns_start_coords.each do |coord|
+      piece = Pawn.new(:W, coord, self, :P)
+      @board[coord[0]][coord[1]] = piece
+    end
 
-    @board[7][7] = King.new(:B, [7,7], self, :K)
-    @board[6][7] = Bishop.new(:B, [6,7], self, :B)
-    @board[6][6] = Bishop.new(:B, [6,6], self, :B)
-    @board[6][2] = Queen.new(:W, [6,2], self, :Q)
+    #populate queens
+    @board[0][4] = Queen.new(:B, [0,4], self, :Q)
+    @board[7][4] = Queen.new(:W, [7,4], self, :Q)
 
-    @board[0][0] = King.new(:W, [0,0], self, :K)
+    #populate bishops
+    @board[0][2] = Bishop.new(:B, [0,2], self, :B)
+    @board[0][5] = Bishop.new(:B, [0,5], self, :B)
+    @board[7][2] = Bishop.new(:W, [7,2], self, :B)
+    @board[7][5] = Bishop.new(:W, [7,5], self, :B)
+
+    #populate rooks
+    @board[0][0] = Rook.new(:B, [0,0], self, :R)
+    @board[0][7] = Rook.new(:B, [0,7], self, :R)
+    @board[7][0] = Rook.new(:W, [7,0], self, :R)
+    @board[7][7] = Rook.new(:W, [7,7], self, :R)
+
+    #populate knights
+    @board[0][1] = Knight.new(:B, [0,1], self, :N)
+    @board[0][6] = Knight.new(:B, [0,6], self, :N)
+    @board[7][1] = Knight.new(:W, [7,1], self, :N)
+    @board[7][6] = Knight.new(:W, [7,6], self, :N)
+
+    #populate kings
+    @board[0][3] = King.new(:B, [0,3], self, :K)
+    @board[7][3] = King.new(:W, [7,3], self, :K)
+
+    # #practice pieces
+    #
+    # @board[7][7] = King.new(:B, [7,7], self, :K)
+    # @board[6][7] = Pawn.new(:B, [6,7], self, :P)
+    # @board[6][6] = Pawn.new(:B, [6,6], self, :P)
+    # @board[6][2] = Queen.new(:W, [6,2], self, :Q)
+    # @board[0][0] = King.new(:W, [0,0], self, :K)
   end
 
   def print_board
